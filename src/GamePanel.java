@@ -1,3 +1,4 @@
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -13,7 +14,8 @@ public class GamePanel extends JPanel {
 
     private Main mainApp;
     private String username;
-
+    private Clip backgroundClip;
+    private long gameStartTime;
     private Player player; 
     private Image backgroundImg;
     private ArrayList<GameObject> objects; // makanan, bom, time boost
@@ -67,12 +69,25 @@ public class GamePanel extends JPanel {
         new CountdownPanel(this, this::startGame);
     }
 
+    private void playBackgroundMusic() {
+        try {
+            File file = new File("assets/sound.wav");
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
+            backgroundClip = AudioSystem.getClip();
+            backgroundClip.open(audioStream);
+            backgroundClip.loop(Clip.LOOP_CONTINUOUSLY); 
+        } catch (Exception e) {
+            System.out.println("Gagal memutar musik: " + e.getMessage());
+        }
+    }
+
     // ============================================================
     // START GAME
     // ============================================================
     private void startGame() {
         gameRunning = true;
-
+        playBackgroundMusic();
+        gameStartTime = System.currentTimeMillis();
         // Loop game: ~60 FPS
         gameLoop = new Timer(16, e -> updateGame());
         gameLoop.start();
@@ -132,7 +147,7 @@ public class GamePanel extends JPanel {
     }
 
     // ============================================================
-    // LOAD GAMBAR MAKANAN
+    // LOAD GAMBAR MAKANAN  
     // ============================================================
     private void loadFoodImages() {
         File folder = new File("assets/food");
@@ -211,6 +226,12 @@ public class GamePanel extends JPanel {
             }
         }
     
+    private void stopBackgroundMusic() {
+        if (backgroundClip != null && backgroundClip.isRunning()) {
+            backgroundClip.stop();
+            backgroundClip.close();
+        }
+    }
 
     // ============================================================
     // END GAME + RESULT SCREEN
@@ -218,13 +239,14 @@ public class GamePanel extends JPanel {
     private void endGame() {
         if (!gameRunning) return;
         gameRunning = false;
-
         if (gameLoop != null) gameLoop.stop();
         if (spawnTimer != null) spawnTimer.stop();
         if (countdownTimer != null) countdownTimer.stop();
 
-        int timeUsed = 60 - timeLeft;
+        long timeEnd = System.currentTimeMillis();
+        int timeUsed = (int) ((timeEnd - gameStartTime) / 1000); 
         if (timeUsed < 0) timeUsed = 0;
+        stopBackgroundMusic();
 
         // Simpan ke database
         KoneksiDatabase.saveScore(username, score, timeUsed);
@@ -414,51 +436,48 @@ public class GamePanel extends JPanel {
     // ---------- PLAYER ----------
     class Player {
         int x = 200, y = 550;
-
-        Image idle  = new ImageIcon("assets/Atas.png").getImage()
-                .getScaledInstance(96, 96, Image.SCALE_SMOOTH);
-        Image left  = new ImageIcon("assets/Kiri.png").getImage()
-                .getScaledInstance(96, 96, Image.SCALE_SMOOTH);
-        Image right = new ImageIcon("assets/Kanan.png").getImage()
-                .getScaledInstance(96, 96, Image.SCALE_SMOOTH);
+        Image idle  = new ImageIcon("assets/Atas.png").getImage();
+        Image left  = new ImageIcon("assets/Kiri.png").getImage();
+        Image right = new ImageIcon("assets/Kanan.png").getImage();
 
         Image currentImg = idle;
 
-        private Timer idleTimer;
+        long lastMoveTime = 0;
+
+        // Timer idle hanya 1x dibuat
+        Timer idleTimer;
 
         public Player() {
-            // satu timer saja, restart setiap mouse bergerak
-            idleTimer = new Timer(500, e -> currentImg = idle);
-            idleTimer.setRepeats(false);
+            idleTimer = new Timer(100, e -> {
+                long now = System.currentTimeMillis();
+                if (now - lastMoveTime >= 500) {
+                    currentImg = idle;
+                }
+            });
+            idleTimer.start();
         }
 
         void updatePosition(int mouseX, int panelWidth) {
-            int half = 48; // setengah lebar gambar (96/2)
+            int oldX = x;
+            x = mouseX - 40;
 
-            if (mouseX < x) currentImg = left;
-            else if (mouseX > x) currentImg = right;
+            if (x < oldX) currentImg = left;
+            else if (x > oldX) currentImg = right;
 
-            // batas kiri-kanan
-            int newX = mouseX - half;
-            if (panelWidth <= 0) panelWidth = 500;
-            if (newX < 0) newX = 0;
-            if (newX > panelWidth - 2 * half) newX = panelWidth - 2 * half;
-
-            x = newX;
-
-            idleTimer.restart(); // setelah 0.5 detik tanpa gerak → idle lagi
+            lastMoveTime = System.currentTimeMillis();
         }
 
         boolean isColliding(GameObject obj) {
-            Rectangle p = new Rectangle(x, y, 96, 96);
-            Rectangle o = new Rectangle(obj.x, obj.y, OBJ_SIZE, OBJ_SIZE);
+            Rectangle p = new Rectangle(x, y, 80, 80);
+            Rectangle o = new Rectangle(obj.x, obj.y, 40, 40);
             return p.intersects(o);
         }
 
         void draw(Graphics g) {
-            g.drawImage(currentImg, x, y, 96, 96, null);
+            g.drawImage(currentImg, x, y, 80, 80, null);
         }
     }
+
 
     // ---------- COUNTDOWN PANEL ----------
     class CountdownPanel {
