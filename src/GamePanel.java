@@ -9,8 +9,7 @@ import java.util.Random;
 public class GamePanel extends JPanel {
 
     private static final int MAX_OBJECTS = 25;   // batas objek di layar
-    private static final int FOOD_SIZE   = 48;   // ukuran gambar makanan
-    private static final int OBJ_SIZE    = 48;   // ukuran bomb & boost juga
+    private static final int FOOD_SIZE   = 45;   // ukuran gambar makanan
 
     private Main mainApp;
     private String username;
@@ -371,13 +370,13 @@ public class GamePanel extends JPanel {
 
         public TimeBoost() {
             img = new ImageIcon("assets/Boost.png").getImage()
-                    .getScaledInstance(OBJ_SIZE, OBJ_SIZE, Image.SCALE_SMOOTH);
+                    .getScaledInstance(48, 48, Image.SCALE_SMOOTH);
 
             int w = getWidth();
             if (w <= 0) w = 500;
 
-            x = random.nextInt(w - OBJ_SIZE);
-            y = -OBJ_SIZE;
+            x = random.nextInt(w - 48);
+            y = -48;
             speed = 4;
 
             rotationSpeed = (Math.random() * 0.04) + 0.01;
@@ -390,7 +389,7 @@ public class GamePanel extends JPanel {
 
         public void draw(Graphics g) {
             Graphics2D g2 = (Graphics2D) g;
-            int size = OBJ_SIZE;
+            int size = 48;
 
             g2.rotate(angle, x + size / 2.0, y + size / 2.0);
             g2.drawImage(img, x, y, size, size, null);
@@ -406,13 +405,13 @@ public class GamePanel extends JPanel {
 
         public Bomb() {
             img = new ImageIcon("assets/Bom.png").getImage()
-                    .getScaledInstance(OBJ_SIZE, OBJ_SIZE, Image.SCALE_SMOOTH);
+                    .getScaledInstance(68, 68, Image.SCALE_SMOOTH);
 
             int w = getWidth();
             if (w <= 0) w = 500;
 
-            x = random.nextInt(w - OBJ_SIZE);
-            y = -OBJ_SIZE;
+            x = random.nextInt(w - 68);
+            y = -68;
             speed = 5 + random.nextInt(3); // 5–7
 
             rotationSpeed = (Math.random() * 0.06) + 0.02;  // boleh sedikit lebih cepat
@@ -425,7 +424,7 @@ public class GamePanel extends JPanel {
 
         public void draw(Graphics g) {
             Graphics2D g2 = (Graphics2D) g;
-            int size = OBJ_SIZE;
+            int size = 68;
 
             g2.rotate(angle, x + size / 2.0, y + size / 2.0);
             g2.drawImage(img, x, y, size, size, null);
@@ -474,7 +473,7 @@ public class GamePanel extends JPanel {
         }
 
         void draw(Graphics g) {
-            g.drawImage(currentImg, x, y, 80, 80, null);
+            g.drawImage(currentImg, x, y, 180, 180, null);
         }
     }
 
