@@ -73,24 +73,30 @@ public class LeaderboardPanel extends JPanel {
 
         add(bottom, BorderLayout.SOUTH);
 
-        // Load leaderboard
+        // Load leaderboard di constructor tetap dilakukan untuk inisialisasi awal
         loadLeaderboard();
     }
 
+    // =============================
+    // REFRESH LEADERBOARD (PUBLIK)
+    // Dipanggil dari Main.java sebelum menampilkan panel
+    // =============================
+    public void refreshLeaderboard() {
+        loadLeaderboard();
+    }
+    
     // =============================
     // LOAD DATA FROM DATABASE
     // =============================
     private void loadLeaderboard() {
         model.setRowCount(0); // clear
 
+        // KoneksiDatabase.getTopScores() mengembalikan ArrayList<String[]>
+        // dengan format: [0] username, [1] score, [2] time_used, [3] created_at
         ArrayList<String[]> data = KoneksiDatabase.getTopScores();
 
         for (String[] row : data) {
-            // row format dari database sekarang:
-            // [0] username
-            // [1] score
-            // [2] time_used
-
+            // Karena tabel hanya 3 kolom (Username, Score, Time Used), kita ambil 3 data pertama
             model.addRow(new Object[]{
                 row[0],
                 row[1],
@@ -98,4 +104,4 @@ public class LeaderboardPanel extends JPanel {
             });
         }
     }
-}
+} 
