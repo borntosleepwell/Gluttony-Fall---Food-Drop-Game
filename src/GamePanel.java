@@ -264,7 +264,7 @@ public class GamePanel extends JPanel {
 
         JPanel center = new JPanel();
         center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
-        center.setBackground(new Color(20, 20, 20));
+        center.setOpaque(false);
 
         JLabel nameLabel = new JLabel("Player : " + username, SwingConstants.CENTER);
         JLabel scoreLabelR = new JLabel("Score  : " + score, SwingConstants.CENTER);
@@ -282,7 +282,7 @@ public class GamePanel extends JPanel {
         add(center, BorderLayout.CENTER);
 
         JPanel bottom = new JPanel();
-        bottom.setBackground(new Color(20, 20, 20));
+        bottom.setOpaque(false);
         bottom.setBorder(BorderFactory.createEmptyBorder(20, 0, 30, 0));
 
         JButton playAgain = new JButton("Main Lagi");
