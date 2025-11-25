@@ -1,7 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.File; // Import wajib untuk baca file font
+import java.io.IOException; // Import wajib untuk error handling
 import javax.swing.*;
 
 public class MenuPanel extends JPanel {
@@ -10,13 +10,12 @@ public class MenuPanel extends JPanel {
     private Image backgroundImage;
     private ImageIcon titleIcon;
     private Font pixelFont; 
+
     public MenuPanel(Main mainApp) {
         this.mainApp = mainApp;
-
-        // 1. LOAD CUSTOM FONT DULU
         loadCustomFont();
 
-        // 2. Load & Resize Gambar
+        // Load & Resize Gambar
         try {
             backgroundImage = new ImageIcon("assets/background2.png").getImage();
             ImageIcon originalTitle = new ImageIcon("assets/title.png");
@@ -28,7 +27,7 @@ public class MenuPanel extends JPanel {
             System.out.println("Gagal memuat gambar.");
         }
 
-        // 3. Setup Layout
+        // Setup Layout
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -48,7 +47,7 @@ public class MenuPanel extends JPanel {
         gbc.insets = new Insets(0, 0, 30, 0); 
         add(titleLabel, gbc);
 
-        // ================== CONTAINER TRANSPARAN ==================
+        // ================== CONTAINER ==================
         JPanel buttonContainer = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -65,7 +64,7 @@ public class MenuPanel extends JPanel {
         buttonContainer.setLayout(new GridLayout(2, 1, 0, 20)); 
         buttonContainer.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
 
-        // ================== TOMBOL DENGAN CUSTOM FONT ==================
+        // ================== CUSTOM FONT BUTTON ==================
         JButton startButton = createPixelStyleButton("START");
         JButton leaderButton = createPixelStyleButton("LEADERBOARD");
 
@@ -91,12 +90,10 @@ public class MenuPanel extends JPanel {
         }
     }
 
-    // ==========================================================
-    // METHOD BARU: LOAD FONT DARI FILE .TTF
-    // ==========================================================
     private void loadCustomFont() {
         try {
-            File fontFile = new File("assets/PixelifySans-Medium.ttf");
+            // MEnggunakan font eksternal
+            File fontFile = new File("assets/PixelFont.ttf");
             
             if (fontFile.exists()) {
                 // Buat font dasar dari file
