@@ -93,7 +93,7 @@ public class MenuPanel extends JPanel {
     private void loadCustomFont() {
         try {
             // MEnggunakan font eksternal
-            File fontFile = new File("assets/PixelFont.ttf");
+            File fontFile = new File("assets/PixelifySans-Medium.ttf");
             
             if (fontFile.exists()) {
                 // Buat font dasar dari file
