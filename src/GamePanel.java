@@ -3,25 +3,26 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class GamePanel extends JPanel {
 
-    private static final int MAX_OBJECTS = 25;   // batas objek di layar
-    private static final int FOOD_SIZE   = 45;   // ukuran gambar makanan
-
+    static final int MAX_OBJECTS = 25;   
+    
+    public static double speedMultiplier = 1.0;
     private Main mainApp;
+    private Font pixelFont; 
     private String username;
     private Clip backgroundClip;
     private long gameStartTime;
     private Player player; 
     private Image backgroundImg;
-    private ArrayList<GameObject> objects; // makanan, bom, time boost
+    private ArrayList<GameObject> objects; 
     private Timer gameLoop;
     private Timer spawnTimer;
     private Timer countdownTimer;
-    private Image[] foodImages;
     private Random random = new Random();
 
     private int score = 0;
@@ -32,40 +33,60 @@ public class GamePanel extends JPanel {
 
     private boolean gameRunning = false;
 
-    // ============================================================
-    // CONSTRUCTOR
-    // ============================================================
     public GamePanel(Main mainApp, String username) {
         this.mainApp = mainApp;
         this.username = username;
 
-        loadFoodImages();
-        
-        // Load background
+        loadCustomFont();   
+
         backgroundImg = new ImageIcon("assets/Background.png").getImage();
 
         setLayout(null);
 
         scoreLabel = new JLabel("Score: 0");
         scoreLabel.setForeground(Color.WHITE);
-        scoreLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        scoreLabel.setFont(pixelFont.deriveFont(18)); 
         scoreLabel.setBounds(20, 10, 200, 30);
         add(scoreLabel);
 
         timerLabel = new JLabel("Time: 60");
         timerLabel.setForeground(Color.WHITE);
-        timerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        timerLabel.setFont(pixelFont.deriveFont(18)); 
         timerLabel.setBounds(360, 10, 200, 30);
         add(timerLabel);
 
-        // Player
         player = new Player();
+        SwingUtilities.invokeLater(() -> {
+            player.centerPlayer(GamePanel.this.getWidth());
+            repaint();
+        });
 
-        // List objek jatuh
         objects = new ArrayList<>();
 
-        // Countdown sebelum game dimulai
         new CountdownPanel(this, this::startGame);
+            
+    }
+
+    private void loadCustomFont() {
+        try {
+            File fontFile = new File("assets/PixelifySans-Medium.ttf");
+            
+            if (fontFile.exists()) {
+                Font baseFont = Font.createFont(Font.TRUETYPE_FONT, fontFile);
+                
+                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                ge.registerFont(baseFont);
+                
+                pixelFont = baseFont.deriveFont(Font.PLAIN, 20f);
+            } else {
+                System.out.println("File font tidak ditemukan! Menggunakan Monospaced.");
+                pixelFont = new Font("Monospaced", Font.BOLD, 20);
+            }
+        } catch (FontFormatException | IOException e) {
+            e.printStackTrace();
+            System.out.println("Gagal load font. Menggunakan Monospaced.");
+            pixelFont = new Font("Monospaced", Font.BOLD, 20);
+        }
     }
 
     private void playBackgroundMusic() {
@@ -80,22 +101,16 @@ public class GamePanel extends JPanel {
         }
     }
 
-    // ============================================================
-    // START GAME
-    // ============================================================
     private void startGame() {
         gameRunning = true;
         playBackgroundMusic();
         gameStartTime = System.currentTimeMillis();
-        // Loop game: ~60 FPS
         gameLoop = new Timer(16, e -> updateGame());
         gameLoop.start();
 
-        // Spawn objek tiap 1 detik
         spawnTimer = new Timer(1000, e -> spawnObjects());
         spawnTimer.start();
 
-        // Hitung mundur waktu
         countdownTimer = new Timer(1000, e -> {
             if (!gameRunning) return;
 
@@ -108,7 +123,6 @@ public class GamePanel extends JPanel {
         });
         countdownTimer.start();
 
-        // Listener mouse (gerakin player)
         addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -117,24 +131,32 @@ public class GamePanel extends JPanel {
         });
     }
 
-    // ============================================================
-    // UPDATE GAME
-    // ============================================================
+    private double getSpeedMultiplier() {
+        if (!gameRunning) return 1.0;  
+
+        long elapsedMs  = System.currentTimeMillis() - gameStartTime;
+        long elapsedSec = elapsedMs / 1000;
+
+        long minuteIndex = elapsedSec / 60; 
+
+        return 1.0 + 0.5 * minuteIndex;
+    }
+
     private void updateGame() {
         if (!gameRunning) return;
+
+        speedMultiplier = getSpeedMultiplier();
 
         for (int i = 0; i < objects.size(); i++) {
             GameObject obj = objects.get(i);
             obj.update();
 
-            // keluar layar bawah → buang
             if (obj.y > getHeight()) {
                 objects.remove(i);
                 i--;
                 continue;
             }
 
-            // tabrakan dengan player
             if (player.isColliding(obj)) {
                 handleCollision(obj);
                 objects.remove(i);
@@ -145,31 +167,6 @@ public class GamePanel extends JPanel {
         repaint();
     }
 
-    // ============================================================
-    // LOAD GAMBAR MAKANAN  
-    // ============================================================
-    private void loadFoodImages() {
-        File folder = new File("assets/food");
-        File[] files = folder.listFiles((dir, name) ->
-                name.toLowerCase().endsWith(".png"));
-
-        if (files == null || files.length == 0) {
-            foodImages = new Image[0];
-            System.out.println("Tidak menemukan gambar makanan di assets/food");
-            return;
-        }
-
-        foodImages = new Image[files.length];
-        for (int i = 0; i < files.length; i++) {
-            Image raw = new ImageIcon(files[i].getPath()).getImage();
-            // scale sekali di awal, jadi saat draw tidak berat
-            foodImages[i] = raw.getScaledInstance(FOOD_SIZE, FOOD_SIZE, Image.SCALE_SMOOTH);
-        }
-    }
-
-    // ============================================================
-    // HANDLE COLLISION
-    // ============================================================
     private void handleCollision(GameObject obj) {
         if (obj instanceof Food) {
             score += 10;
@@ -188,38 +185,37 @@ public class GamePanel extends JPanel {
         }
     }
 
-    // ============================================================
-    // SPAWN OBJECTS
-    // ============================================================
     private void spawnObjects() {
         if (objects.size() >= MAX_OBJECTS) return;
 
-        int type = random.nextInt(10); // 0-9
+        int panelWidth = getWidth();
+        if (panelWidth <= 0) return;
+
+        int type = random.nextInt(10); 
 
         GameObject obj;
 
-        if (type < 7) obj = new Food();          // 70%
-        else if (type == 7) obj = new TimeBoost(); // 10%
-        else obj = new Bomb();                    // 20%
+        if (type < 7) {
+            obj = new Food(panelWidth);     
+        } else if (type == 7) {
+            obj = new TimeBoost(panelWidth);           
+        } else {
+            obj = new Bomb(panelWidth);               
+        }
 
         objects.add(obj);
     }
 
 
-    // ============================================================
-    // PAINT
-    // ============================================================
+
     @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
 
-            // ===== Gambar background dulu =====
             g.drawImage(backgroundImg, 0, 0, getWidth(), getHeight(), null);
 
-            // ===== Gambar player =====
             player.draw(g);
 
-            // ===== Gambar objek jatuh =====
             for (GameObject obj : objects) {
                 obj.draw(g);
             }
@@ -232,9 +228,6 @@ public class GamePanel extends JPanel {
         }
     }
 
-    // ============================================================
-    // END GAME + RESULT SCREEN
-    // ============================================================
     private void endGame() {
         if (!gameRunning) return;
         gameRunning = false;
@@ -247,10 +240,8 @@ public class GamePanel extends JPanel {
         if (timeUsed < 0) timeUsed = 0;
         stopBackgroundMusic();
 
-        // Simpan ke database
         KoneksiDatabase.saveScore(username, score, timeUsed);
 
-        // ===== GANTI TAMPILAN JADI RESULT SCREEN =====
         removeAll();
         setLayout(new BorderLayout());
         setBackground(new Color(20, 20, 20));
@@ -306,202 +297,5 @@ public class GamePanel extends JPanel {
 
         revalidate();
         repaint();
-    }
-
-    // ============================================================
-    // ================   INNER CLASSES   ==========================
-    // ============================================================
-
-    // ---------- SUPERCLASS GAME OBJECT ----------
-    abstract class GameObject {
-        int x, y, speed;
-        Image img;
-
-        public abstract void update();
-        public abstract void draw(Graphics g);
-    }
-
-    // ---------- FOOD (+10) ----------
-    class Food extends GameObject {
-
-        double angle = 0;        // sudut rotasi
-        double rotationSpeed;    // kecepatan muter
-
-        public Food() {
-            if (foodImages.length == 0) {
-                // fallback kalau gambar tidak ada
-                img = null;
-            } else {
-                img = foodImages[random.nextInt(foodImages.length)];
-            }
-
-            int w = getWidth();
-            if (w <= 0) w = 500; // fallback
-
-            x = random.nextInt(w - FOOD_SIZE);
-            y = -FOOD_SIZE;
-            speed = 4 + random.nextInt(3); // 4–6
-
-            rotationSpeed = (Math.random() * 0.05) + 0.01; // lebih lambat, ringan
-        }
-
-        public void update() {
-            y += speed;
-            angle += rotationSpeed;
-        }
-
-        public void draw(Graphics g) {
-            if (img == null) return;
-
-            Graphics2D g2 = (Graphics2D) g;
-            int size = FOOD_SIZE;
-
-            g2.rotate(angle, x + size / 2.0, y + size / 2.0);
-            g2.drawImage(img, x, y, size, size, null);
-            g2.rotate(-angle, x + size / 2.0, y + size / 2.0);
-        }
-    }
-
-    // ---------- TIME BOOST (+10 TIME) ----------
-    class TimeBoost extends GameObject {
-
-        double angle = 0;
-        double rotationSpeed;
-
-        public TimeBoost() {
-            img = new ImageIcon("assets/Boost.png").getImage()
-                    .getScaledInstance(48, 48, Image.SCALE_SMOOTH);
-
-            int w = getWidth();
-            if (w <= 0) w = 500;
-
-            x = random.nextInt(w - 48);
-            y = -48;
-            speed = 4;
-
-            rotationSpeed = (Math.random() * 0.04) + 0.01;
-        }
-
-        public void update() {
-            y += speed;
-            angle += rotationSpeed;
-        }
-
-        public void draw(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
-            int size = 48;
-
-            g2.rotate(angle, x + size / 2.0, y + size / 2.0);
-            g2.drawImage(img, x, y, size, size, null);
-            g2.rotate(-angle, x + size / 2.0, y + size / 2.0);
-        }
-    }
-
-    // ---------- BOMB (-10 TIME) ----------
-    class Bomb extends GameObject {
-
-        double angle = 0;
-        double rotationSpeed;
-
-        public Bomb() {
-            img = new ImageIcon("assets/Bom.png").getImage()
-                    .getScaledInstance(68, 68, Image.SCALE_SMOOTH);
-
-            int w = getWidth();
-            if (w <= 0) w = 500;
-
-            x = random.nextInt(w - 68);
-            y = -68;
-            speed = 5 + random.nextInt(3); // 5–7
-
-            rotationSpeed = (Math.random() * 0.06) + 0.02;  // boleh sedikit lebih cepat
-        }
-
-        public void update() {
-            y += speed;
-            angle += rotationSpeed;
-        }
-
-        public void draw(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
-            int size = 68;
-
-            g2.rotate(angle, x + size / 2.0, y + size / 2.0);
-            g2.drawImage(img, x, y, size, size, null);
-            g2.rotate(-angle, x + size / 2.0, y + size / 2.0);
-        }
-    }
-
-    // ---------- PLAYER ----------
-    class Player {
-        int x = 200, y = 550;
-        Image idle  = new ImageIcon("assets/Atas.png").getImage();
-        Image left  = new ImageIcon("assets/Kiri.png").getImage();
-        Image right = new ImageIcon("assets/Kanan.png").getImage();
-
-        Image currentImg = idle;
-
-        long lastMoveTime = 0;
-
-        // Timer idle hanya 1x dibuat
-        Timer idleTimer;
-
-        public Player() {
-            idleTimer = new Timer(100, e -> {
-                long now = System.currentTimeMillis();
-                if (now - lastMoveTime >= 500) {
-                    currentImg = idle;
-                }
-            });
-            idleTimer.start();
-        }
-
-        void updatePosition(int mouseX, int panelWidth) {
-            int oldX = x;
-            x = mouseX - 40;
-
-            if (x < oldX) currentImg = left;
-            else if (x > oldX) currentImg = right;
-
-            lastMoveTime = System.currentTimeMillis();
-        }
-
-        boolean isColliding(GameObject obj) {
-            Rectangle p = new Rectangle(x, y, 80, 80);
-            Rectangle o = new Rectangle(obj.x, obj.y, 40, 40);
-            return p.intersects(o);
-        }
-
-        void draw(Graphics g) {
-            g.drawImage(currentImg, x, y, 180, 180, null);
-        }
-    }
-
-
-    // ---------- COUNTDOWN PANEL ----------
-    class CountdownPanel {
-        public CountdownPanel(JPanel parent, Runnable onFinish) {
-            JLabel label = new JLabel("", SwingConstants.CENTER);
-            label.setFont(new Font("Arial", Font.BOLD, 100));
-            label.setForeground(Color.WHITE);
-            label.setBounds(0, 200, 500, 200);
-
-            parent.add(label);
-            parent.repaint();
-
-            new Thread(() -> {
-                try {
-                    for (int i = 3; i >= 1; i--) {
-                        label.setText("" + i);
-                        Thread.sleep(700);
-                    }
-                    label.setText("GO!");
-                    Thread.sleep(700);
-                    parent.remove(label);
-                    parent.repaint();
-                    onFinish.run();
-                } catch (Exception ignored) {}
-            }).start();
-        }
     }
 }
