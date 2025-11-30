@@ -16,7 +16,6 @@ public class Main extends JFrame {
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        // Inisialisasi LeaderboardPanel dan simpan referensinya
         leaderboardPanel = new LeaderboardPanel(this);
 
         mainPanel.add(new MenuPanel(this), "Menu");

@@ -17,15 +17,12 @@ public class LeaderboardPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(new Color(30, 30, 30));
 
-        // ====== TITLE ======
         JLabel title = new JLabel("Leaderboard", SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 32));
         title.setForeground(new Color(255, 180, 0));
         title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         add(title, BorderLayout.NORTH);
 
-        // ====== TABLE ======
-        // Removed tanggal column
         String[] columns = {"Username", "Score", "Time Used"};
         model = new DefaultTableModel(columns, 0) {
             public boolean isCellEditable(int row, int col) {
@@ -44,7 +41,6 @@ public class LeaderboardPanel extends JPanel {
         header.setBackground(new Color(255, 180, 0));
         header.setForeground(Color.BLACK);
 
-        // Center align data
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
 
@@ -58,7 +54,6 @@ public class LeaderboardPanel extends JPanel {
 
         add(scroll, BorderLayout.CENTER);
 
-        // ====== BACK BUTTON ======
         JButton backButton = new JButton("« Kembali");
         backButton.setFont(new Font("Arial", Font.BOLD, 18));
         backButton.setBackground(new Color(255, 180, 0));
