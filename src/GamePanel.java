@@ -56,14 +56,14 @@ public class GamePanel extends JPanel {
         add(timerLabel);
 
         player = new Player();
+        objects = new ArrayList<>();
+
         SwingUtilities.invokeLater(() -> {
             player.centerPlayer(GamePanel.this.getWidth());
             repaint();
         });
 
-        objects = new ArrayList<>();
-
-        new CountdownPanel(this, this::startGame);
+        SwingUtilities.invokeLater(() -> showReadyCountdown(this::startGame));
             
     }
 
@@ -99,6 +99,32 @@ public class GamePanel extends JPanel {
         } catch (Exception e) {
             System.out.println("Gagal memutar musik: " + e.getMessage());
         }
+    }
+    
+    private void showReadyCountdown(Runnable onFinish) {
+        JLabel label = new JLabel("", SwingConstants.CENTER);
+        label.setFont(pixelFont.deriveFont(100f));
+        label.setForeground(Color.WHITE);
+        label.setBounds(0, 200, getWidth(), 200);
+
+        add(label);
+        repaint();
+
+        new Thread(() -> {
+            try {
+                for (int i = 3; i >= 1; i--) {
+                    label.setText("" + i);
+                    Thread.sleep(700);
+                }
+                label.setText("GO!");
+                Thread.sleep(700);
+
+                remove(label);
+                repaint();
+                onFinish.run();
+
+            } catch (Exception ignored) {}
+        }).start();
     }
 
     private void startGame() {
