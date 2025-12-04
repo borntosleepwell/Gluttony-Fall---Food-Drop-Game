@@ -273,7 +273,8 @@ public class GamePanel extends JPanel {
         setBackground(new Color(20, 20, 20));
 
         JLabel title = new JLabel("Game Over!", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 36));
+        
+        title.setFont(pixelFont.deriveFont(36f));
         title.setForeground(new Color(255, 180, 0));
         title.setBorder(BorderFactory.createEmptyBorder(40, 0, 20, 0));
         add(title, BorderLayout.NORTH);
@@ -286,7 +287,9 @@ public class GamePanel extends JPanel {
         JLabel scoreLabelR = new JLabel("Score  : " + score, SwingConstants.CENTER);
         JLabel timeLabelR = new JLabel("Waktu Bermain : " + timeUsed + " detik", SwingConstants.CENTER);
 
-        Font f = new Font("Arial", Font.BOLD, 22);
+         timerLabel.setFont(pixelFont.deriveFont(18)); 
+
+        Font f = pixelFont.deriveFont(18);
         Color c = Color.WHITE;
         for (JLabel l : new JLabel[]{nameLabel, scoreLabelR, timeLabelR}) {
             l.setFont(f);
@@ -307,7 +310,7 @@ public class GamePanel extends JPanel {
 
         JButton[] buttons = {playAgain, menuBtn, leaderBtn};
         for (JButton b : buttons) {
-            b.setFont(new Font("Arial", Font.BOLD, 18));
+            b.setFont(pixelFont.deriveFont(18));
             b.setBackground(new Color(255, 180, 0));
             b.setFocusPainted(false);
             b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
