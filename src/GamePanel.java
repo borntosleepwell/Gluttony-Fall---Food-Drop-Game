@@ -1,11 +1,11 @@
-import javax.sound.sampled.*;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
+import javax.sound.sampled.*;
+import javax.swing.*;
 
 public class GamePanel extends JPanel {
 
@@ -163,7 +163,7 @@ public class GamePanel extends JPanel {
         long elapsedMs  = System.currentTimeMillis() - gameStartTime;
         long elapsedSec = elapsedMs / 1000;
 
-        long minuteIndex = elapsedSec / 60; 
+        long minuteIndex = elapsedSec / 20; 
 
         return 1.0 + 0.5 * minuteIndex;
     }
