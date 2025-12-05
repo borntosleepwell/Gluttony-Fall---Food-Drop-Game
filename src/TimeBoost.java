@@ -5,7 +5,7 @@ import java.util.Random;
 public class TimeBoost extends GameObject {
 
     private static final Random random = new Random();
-    private static final int SIZE = 48;
+    private static final int SIZE = 50;
 
     private double angle = 0;
     private double rotationSpeed;

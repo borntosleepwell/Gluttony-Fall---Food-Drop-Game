@@ -5,7 +5,7 @@ import java.util.Random;
 
 public class Food extends GameObject {
 
-    public static final int FOOD_SIZE = 45;
+    public static final int FOOD_SIZE = 50;
     private static Image[] foodImages;
     private static final Random random = new Random();
     double angle = 0;

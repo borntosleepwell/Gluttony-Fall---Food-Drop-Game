@@ -21,7 +21,7 @@ public class Bomb extends GameObject {
         }
 
         y = -SIZE;
-        speed = 6; // sedikit lebih cepat
+        speed = 6; 
 
         rotationSpeed = (Math.random() * 0.06) + 0.02;
     }

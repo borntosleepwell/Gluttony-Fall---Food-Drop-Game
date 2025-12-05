@@ -1,18 +1,18 @@
+import javax.sound.sampled.*;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
-import javax.sound.sampled.*;
-import javax.swing.*;
 
 public class GamePanel extends JPanel {
 
     static final int MAX_OBJECTS = 25;   
     
     public static double speedMultiplier = 1.0;
-    private Main mainApp;
+    private Main mainApp;   
     private Font pixelFont; 
     private String username;
     private Clip backgroundClip;
@@ -134,7 +134,7 @@ public class GamePanel extends JPanel {
         gameLoop = new Timer(16, e -> updateGame());
         gameLoop.start();
 
-        spawnTimer = new Timer(1000, e -> spawnObjects());
+        spawnTimer = new Timer(800, e -> spawnObjects());
         spawnTimer.start();
 
         countdownTimer = new Timer(1000, e -> {
@@ -273,7 +273,6 @@ public class GamePanel extends JPanel {
         setBackground(new Color(20, 20, 20));
 
         JLabel title = new JLabel("Game Over!", SwingConstants.CENTER);
-        
         title.setFont(pixelFont.deriveFont(36f));
         title.setForeground(new Color(255, 180, 0));
         title.setBorder(BorderFactory.createEmptyBorder(40, 0, 20, 0));
@@ -286,8 +285,6 @@ public class GamePanel extends JPanel {
         JLabel nameLabel = new JLabel("Player : " + username, SwingConstants.CENTER);
         JLabel scoreLabelR = new JLabel("Score  : " + score, SwingConstants.CENTER);
         JLabel timeLabelR = new JLabel("Waktu Bermain : " + timeUsed + " detik", SwingConstants.CENTER);
-
-         timerLabel.setFont(pixelFont.deriveFont(18)); 
 
         Font f = pixelFont.deriveFont(18);
         Color c = Color.WHITE;
